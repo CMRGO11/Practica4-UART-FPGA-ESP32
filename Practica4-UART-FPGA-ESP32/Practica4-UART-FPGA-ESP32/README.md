@@ -5,8 +5,6 @@
 **Integrantes:** Diego Camargo (180892) · Pablo Robles (166855) · Bruno García (177613)
 **Entrega:** 30 de octubre de 2026
 
-![Verilog](https://img.shields.io/badge/HDL-Verilog-blue) ![FPGA](https://img.shields.io/badge/FPGA-DE10--Lite%20(MAX%2010)-orange) ![UART](https://img.shields.io/badge/UART-9600%208N1-green) ![MATLAB](https://img.shields.io/badge/MATLAB-serialport-red) ![ESP32](https://img.shields.io/badge/ESP32-Arduino%20IDE-lightgrey)
-
 ## Contenido
 
 - [Resumen](#resumen)
