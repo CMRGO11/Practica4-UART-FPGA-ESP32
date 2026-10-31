@@ -1,5 +1,5 @@
 # Asignacion de pines para top_uart_de10lite (DE10-Lite, MAX 10)
-# Verificar contra el manual de la tarjeta antes de compilar.
+# Pines segun el manual de usuario de la DE10-Lite.
 set_global_assignment -name TOP_LEVEL_ENTITY top_uart_de10lite
 
 set_location_assignment PIN_P11 -to CLOCK_50
@@ -14,12 +14,13 @@ set_location_assignment PIN_C13 -to LEDR[5]
 set_location_assignment PIN_E14 -to LEDR[6]
 set_location_assignment PIN_D14 -to LEDR[7]
 
-# TODO: completar con los GPIO / header Arduino usados en la practica
-# set_location_assignment PIN_XXXX -to UART_RX    ;# <- GPIO17 del ESP32
-# set_location_assignment PIN_XXXX -to UART_TX    ;# -> GPIO16 del ESP32
+# UART en el conector GPIO de 40 pines (GND comun con el ESP32)
+set_location_assignment PIN_V10 -to UART_RX      ;# GPIO[0] <- GPIO17 del ESP32
+set_location_assignment PIN_W10 -to UART_TX      ;# GPIO[1] -> GPIO16 del ESP32
 
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RESET_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_RX
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_TX
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[*]
+
