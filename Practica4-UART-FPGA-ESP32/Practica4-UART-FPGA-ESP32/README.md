@@ -170,6 +170,57 @@ El diseño se sintetizó en Intel Quartus Prime para el dispositivo MAX 10 de la
 
 ## Resultados
 
+\subsection{Simulación de los módulos UART}
+Antes de programar la tarjeta se verificó el diseño mediante simulación funcional con tres bancos de prueba (\emph{testbench}) en Verilog: \texttt{tb\_uart\_tx}, \texttt{tb\_uart\_rx} y \texttt{tb\_top\_uart}. Un \emph{testbench} es un módulo sin puertos que genera el reloj, el reinicio y los estímulos, instancia el diseño bajo prueba y compara sus salidas con los valores esperados, de modo que el resultado se valida automáticamente. Las formas de onda se guardaron en archivos \texttt{.vcd} y se observaron en GTKWave.
+ 
+La Figura~\ref{fig:sim_consola} muestra la salida en consola de los tres bancos de prueba. En \texttt{tb\_uart\_tx} se entregan al transmisor los datos 11, 26, 101, 201 y 0, y el banco decodifica la línea \texttt{tx} y comprueba que el byte reconstruido coincide con el enviado y que el bit de paro vale 1. En \texttt{tb\_uart\_rx} se genera sobre la línea \texttt{rx} una trama 8N1 con los valores 10, 25, 100, 200 y 255, y se verifica que \texttt{data\_out} sea igual al dato enviado. En ambos casos todas las pruebas pasaron.
+ 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\columnwidth]{figs/sim_consola.jpg}
+\caption{Salida en consola de los \emph{testbench} \texttt{tb\_uart\_tx}, \texttt{tb\_uart\_rx} y \texttt{tb\_top\_uart}.}
+\label{fig:sim_consola}
+\end{figure}
+ 
+La Figura~\ref{fig:sim_rx} corresponde a \texttt{tb\_uart\_rx}. La señal \texttt{byte\_enviado} indica el dato que el banco de pruebas transmite por \texttt{rx} (10, 25, 100, 200 y 255, uno cada $\approx$1.1~ms, que equivale a los 10 bits de la trama a 9600 baudios más una breve pausa). Para cada trama, el registro \texttt{state} recorre los valores 1, 2, 3 y 0, que corresponden a las etapas de inicio, datos, paro y reposo de la máquina de estados; durante la etapa de datos \texttt{bit\_index} cuenta de 0 a 7 y \texttt{rx\_shift} va armando el byte bit por bit. Al terminar la trama se genera un pulso de un ciclo en \texttt{data\_valid} y \texttt{data\_out} se actualiza con el byte completo, que coincide con el enviado.
+ 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figs/sim_rx_gtkwave.jpg}
+\caption{Simulación del receptor (\texttt{tb\_uart\_rx}) en GTKWave: \texttt{rx}, estados de la FSM, \texttt{bit\_index}, \texttt{rx\_shift}, \texttt{data\_valid} y \texttt{data\_out}.}
+\label{fig:sim_rx}
+\end{figure*}
+ 
+\subsection{Simulación del sistema completo}
+El banco \texttt{tb\_top\_uart} prueba el módulo superior de extremo a extremo: envía un byte por \texttt{rx\_line}, decodifica lo que sale por \texttt{tx\_line} en la señal \texttt{recibido} y lo compara con el valor esperado (dato $+1$). La Figura~\ref{fig:sim_top} muestra el primer intercambio. Mientras el banco envía el dato 10 por \texttt{rx\_line}, el receptor lo ensambla y, a $\approx$1~ms (al final de la trama), \texttt{rx\_data} toma el valor 10; en ese mismo instante \texttt{tx\_data} se carga con 11 (el byte recibido más uno), se genera un pulso en \texttt{tx\_start} y \texttt{tx\_busy} se mantiene en alto durante $\approx$1.04~ms, el tiempo de los 10 bits de la trama de respuesta. Al finalizar, el banco ya reconstruyó en \texttt{recibido} el valor 11. Los LEDs (\texttt{leds}) muestran el byte recibido (10). Poco después, \texttt{byte\_enviado} cambia a 25 y comienza el siguiente intercambio.
+ 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figs/sim_top_gtkwave.jpg}
+\caption{Simulación del sistema completo (\texttt{tb\_top\_uart}) en GTKWave: recepción del 10, cálculo de 11, transmisión de la respuesta y reconstrucción en \texttt{recibido}.}
+\label{fig:sim_top}
+\end{figure*}
+ 
+El Cuadro~\ref{tab:sim_top} resume las cinco pruebas del sistema completo, que coinciden con la tabla de pruebas de la guía de la práctica. Todas pasaron, incluido el caso límite: al enviar 255 la suma se trunca a 8 bits y la respuesta es 0. La simulación completa abarca $\approx$10.9~ms.
+ 
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+Enviado & Esperado & Respuesta simulada & Resultado \\
+\midrule
+10 & 11 & 11 & OK \\
+25 & 26 & 26 & OK \\
+100 & 101 & 101 & OK \\
+200 & 201 & 201 & OK \\
+255 & 0 & 0 & OK \\
+\bottomrule
+\end{tabular}
+\caption{Resultados de \texttt{tb\_top\_uart}.}
+\label{tab:sim_top}
+\end{table}
+
 ### Carga del programa en el ESP32
 
 En la Figura 4 se muestra la salida de Arduino IDE al cargar el *sketch*. El programa compilado ocupa 271 984 bytes (157 103 bytes comprimidos), se escribió a partir de la dirección `0x00010000` en 2.4 s y la herramienta verificó el *hash* de los datos escritos, tras lo cual reinició la tarjeta mediante el pin RTS.
